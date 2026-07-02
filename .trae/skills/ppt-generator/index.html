@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公司PPT模板</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", SimHei, Arial, Helvetica, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background-color: #f5f5f5;
+            border-right: 1px solid #ddd;
+            padding: 20px;
+            overflow-y: auto;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+        
+        .sidebar.collapsed {
+            width: 0;
+            padding: 0;
+            border-right: none;
+            overflow: visible;
+        }
+        
+        .sidebar h2 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #333;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: opacity 0.3s ease;
+        }
+        
+        .sidebar.collapsed h2 {
+            opacity: 0;
+        }
+        
+        .nav-container {
+            max-height: 500px;
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+        }
+        
+        .sidebar.collapsed .nav-container {
+            max-height: 0;
+            opacity: 0;
+        }
+        
+        .toggle-btn {
+            position: fixed;
+            top: 50%;
+            left: 290px;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 40px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+        
+        .sidebar.collapsed .toggle-btn {
+            left: -20px;
+            border-radius: 0 5px 5px 0;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            opacity: 0;
+        }
+        
+        .toggle-trigger:hover,
+        .toggle-btn:hover {
+            cursor: pointer;
+        }
+        
+        .sidebar:not(.collapsed) .toggle-btn {
+            left: 290px !important;
+            opacity: 1 !important;
+        }
+        
+        .toggle-trigger {
+            position: fixed;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 100px;
+            z-index: 99;
+        }
+        
+        .toggle-trigger:hover ~ .toggle-btn,
+        .toggle-btn:hover {
+            left: 0;
+            opacity: 1;
+        }
+        
+        .toggle-btn:hover {
+            left: 0 !important;
+            opacity: 1 !important;
+        }
+        
+        .nav-item {
+            padding: 10px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-item:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .nav-item.active {
+            background-color: #00adff;
+            color: white;
+        }
+        
+        .main-content {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-buttons {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn {
+            background-color: rgba(255, 255, 255, 0.5);
+            border: 1px solid #ddd;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .nav-buttons-trigger {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            z-index: 99;
+        }
+        
+        .nav-buttons-trigger:hover + .nav-buttons,
+        .nav-buttons:hover {
+            opacity: 1;
+        }
+        
+        .ppt-page {
+            width: 100%;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            z-index: 1;
+        }
+        
+        .ppt-page.active {
+            opacity: 1;
+            transform: translateX(0);
+            z-index: 2;
+        }
+        
+        .ppt-page.prev {
+            transform: translateX(-100%);
+        }
+        
+        .ppt-page.next {
+            transform: translateX(100%);
+        }
+        
+        .cover-page {
+            background-color: #ffffff;
+            background-image: url('assets/bg-cover.png');
+            background-position: 0px 0px;
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            padding: 62px 38px 325px 78px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .cover-logo {
+            margin-left: auto;
+            width: 387px;
+            height: 84px;
+        }
+        
+        .cover-title {
+            margin: 129px 0px 0px 1px;
+            line-height: 127px;
+            letter-spacing: 0;
+            color: #ffffff;
+            font-size: 96px;
+            font-weight: 700;
+        }
+        
+        .cover-divider {
+            margin-top: 43px;
+            width: 1056px;
+            height: 8px;
+            background-image: linear-gradient(
+                90deg,
+                #c803f0 0%,
+                #2d3ff8 23.56%,
+                #00adff 38.25%,
+                #00e470 100%
+            );
+        }
+        
+        .cover-subtitle {
+            margin: 45px 0px 0px 1px;
+            line-height: 74px;
+            letter-spacing: 0;
+            color: #ffffff;
+            font-size: 56px;
+        }
+        
+        .cover-date {
+            position: relative;
+            margin-top: 108px;
+            margin-left: 16px;
+            width: 269px;
+            height: 75px;
+        }
+        
+        .cover-date-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            border: 2px solid #03ffff;
+            border-radius: 99px;
+            width: 269px;
+            height: 75px;
+        }
+        
+        .cover-date-text {
+            display: flex;
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            align-items: center;
+            justify-content: center;
+            width: 269px;
+            height: 75px;
+            letter-spacing: 0;
+            color: #ffffff;
+            font-size: 36px;
+        }
+        
+        .cover-page-number {
+            position: absolute;
+            bottom: 56px;
+            right: 38px;
+            font-size: 24px;
+            color: #000000;
+        }
+        
+        .toc-page {
+            background-color: #ffffff;
+            padding: 47px 38px 56px 0px;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .toc-logo {
+            position: absolute;
+            top: 47px;
+            right: 38px;
+            width: 304px;
+            height: 57px;
+        }
+        
+        .toc-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 636px;
+            height: 100vh;
+            background-image: url('assets/Directory Background Image.png');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-left: 85px;
+            z-index: 1;
+        }
+        
+        .toc-background h2 {
+            color: #ffffff;
+            font-size: 86px;
+            line-height: 114px;
+            margin: 0;
+            font-weight: 700;
+        }
+        
+        .toc-background p {
+            color: #ffffff;
+            font-size: 56px;
+            line-height: 104px;
+            margin: 64px 0 0 4px;
+        }
+        
+        .toc-content {
+            position: absolute;
+            top: 200px;
+            left: 700px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            z-index: 2;
+        }
+        
+        .toc-item {
+            display: flex;
+            align-items: center;
+            gap: 58px;
+            font-size: 48px;
+            font-weight: 700;
+            color: #2e2e32;
+            margin: 0;
+        }
+        
+        .toc-item-number {
+            font-size: 48px;
+            font-weight: 700;
+            color: #2e2e32;
+            width: 100px;
+        }
+        
+        .toc-page-number {
+            position: absolute;
+            bottom: 56px;
+            right: 38px;
+            font-size: 24px;
+            color: #000000;
+        }
+        
+        .chapter-page {
+            background-color: #ffffff;
+            padding: 47px 38px 56px 0px;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chapter-logo {
+            position: absolute;
+            top: 47px;
+            right: 38px;
+            width: 304px;
+            height: 57px;
+        }
+        
+        .chapter-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 636px;
+            height: 100vh;
+            background-image: url('assets/Directory Background Image.png');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-left: 90px;
+            z-index: 1;
+        }
+        
+        .chapter-number {
+            color: #ffffff;
+            font-size: 200px;
+            font-weight: 700;
+            line-height: 264px;
+            margin: 0 0 6px 0;
+        }
+        
+        .chapter-divider {
+            width: 520px;
+            height: 3px;
+            background-color: #ffffff;
+            margin-bottom: 36px;
+        }
+        
+        .chapter-title {
+            color: #ffffff;
+            font-size: 50px;
+            line-height: 61px;
+            margin: 0;
+        }
+        
+        .chapter-content {
+            position: absolute;
+            top: 200px;
+            left: 700px;
+            right: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 22px;
+            z-index: 2;
+        }
+        
+        .chapter-main-title {
+            font-size: 80px;
+            font-weight: 700;
+            color: #2e2e32;
+            margin: 0;
+            text-align: center;
+        }
+        
+        .chapter-subtitle {
+            font-size: 48px;
+            font-weight: 700;
+            color: #2e2e32;
+            margin: 0;
+            text-align: center;
+        }
+        
+        .chapter-page-number {
+            position: absolute;
+            bottom: 56px;
+            right: 38px;
+            font-size: 24px;
+            color: #000000;
+        }
+        
+        .content-page {
+            background-color: #ffffff;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .content-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('assets/mnsq2cxy-fzlrv62.png');
+            background-position: 0px 0px;
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            z-index: 1;
+        }
+        
+        .content-content {
+            position: absolute;
+            top: 120px;
+            left: 44px;
+            right: 44px;
+            bottom: 44px;
+            overflow: hidden;
+            z-index: 2;
+        }
+        
+        .content-title {
+            position: absolute;
+            top: 44px;
+            left: 44px;
+            font-size: 48px;
+            font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", SimHei, Arial, Helvetica, sans-serif;
+            font-weight: 700;
+            color: #2e2e32;
+            z-index: 2;
+        }
+        
+        .content-logo {
+            position: absolute;
+            top: 47px;
+            right: 38px;
+            width: 304px;
+            height: 57px;
+            z-index: 2;
+        }
+        
+        .content-page-number {
+            position: absolute;
+            bottom: 56px;
+            right: 38px;
+            font-size: 24px;
+            color: #000000;
+            z-index: 2;
+        }
+        
+        .end-page {
+            background-color: #ffffff;
+            background-image: url('assets/mnsqc0n8-xa7tom4.png');
+            background-position: 0px 0px;
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .end-logo {
+            position: absolute;
+            top: 62px;
+            right: 38px;
+            width: 387px;
+            height: 84px;
+        }
+        
+        .end-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+            z-index: 2;
+        }
+        
+        .end-title {
+            font-size: 96px;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0;
+            text-align: center;
+        }
+        
+        .end-subtitle {
+            font-size: 56px;
+            color: #ffffff;
+            margin: 0;
+            text-align: center;
+        }
+        
+        .end-page-number {
+            position: absolute;
+            bottom: 56px;
+            right: 38px;
+            font-size: 24px;
+            color: #000000;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <h2>PPT页面</h2>
+        <div class="nav-container">
+            <div class="nav-item active" data-page="cover">封面页</div>
+            <div class="nav-item" data-page="toc">目录页</div>
+            <div class="nav-item" data-page="chapter1">章节页</div>
+            <div class="nav-item" data-page="content">内容页</div>
+            <div class="nav-item" data-page="end">结尾页</div>
+        </div>
+        <div class="toggle-trigger"></div>
+        <div class="toggle-btn" id="toggleBtn">›</div>
+    </div>
+    
+    <div class="main-content">
+        <div class="nav-buttons-trigger"></div>
+        
+        <div class="nav-buttons">
+            <button class="nav-btn" id="prevBtn">‹</button>
+            <button class="nav-btn" id="nextBtn">›</button>
+        </div>
+        
+        <div class="ppt-page active" id="cover">
+            <div class="cover-page">
+                <img src="assets/logo.png" class="cover-logo" alt="公司Logo">
+                <h1 class="cover-title">这里是标题标题标题标题</h1>
+                <div class="cover-divider"></div>
+                <p class="cover-subtitle">这里是副标题</p>
+                <div class="cover-date">
+                    <div class="cover-date-bg"></div>
+                    <p class="cover-date-text">2023.4</p>
+                </div>
+                <div class="cover-page-number">1</div>
+            </div>
+        </div>
+        
+        <div class="ppt-page" id="toc">
+            <div class="toc-page">
+                <img src="assets/mnsqy3yi-mig0ksh.png" class="toc-logo" alt="公司Logo">
+                <div class="toc-background">
+                    <h2>Contents</h2>
+                    <p>目录</p>
+                </div>
+                <div class="toc-content">
+                    <div class="toc-item">
+                        <span class="toc-item-number">01</span>
+                        <span>公司基本介绍</span>
+                    </div>
+                    <div class="toc-item">
+                        <span class="toc-item-number">02</span>
+                        <span>产品及解决方案</span>
+                    </div>
+                    <div class="toc-item">
+                        <span class="toc-item-number">03</span>
+                        <span>成功案例</span>
+                    </div>
+                </div>
+                <div class="toc-page-number">2</div>
+            </div>
+        </div>
+        
+        <div class="ppt-page" id="chapter1">
+            <div class="chapter-page">
+                <img src="assets/mnsqy3yi-mig0ksh.png" class="chapter-logo" alt="公司Logo">
+                <div class="chapter-background">
+                    <div class="chapter-number">01</div>
+                    <div class="chapter-divider"></div>
+                    <div class="chapter-title">Chapter Page one</div>
+                </div>
+                <div class="chapter-content">
+                    <div class="chapter-main-title">公司基本介绍</div>
+                    <div class="chapter-subtitle">这里是一行副标题</div>
+                </div>
+                <div class="chapter-page-number">3</div>
+            </div>
+        </div>
+        
+        <div class="ppt-page" id="content">
+            <div class="content-page">
+                <img src="assets/mnsqy3yi-mig0ksh.png" class="content-logo" alt="公司Logo">
+                <div class="content-background"></div>
+                <div class="content-title">页面标题</div>
+                <div class="content-content">
+                    <!-- 内容页内容将在此添加，确保在安全范围内显示 -->
+                </div>
+                <div class="content-page-number">5</div>
+            </div>
+        </div>
+        
+        <div class="ppt-page" id="end">
+            <div class="end-page">
+                <img src="assets/mnsqc0n8-zylxxn3.png" class="end-logo" alt="公司Logo">
+                <div class="end-content">
+                    <div class="end-title">谢谢观看</div>
+                    <div class="end-subtitle">THANKS</div>
+                </div>
+                <div class="end-page-number">6</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const pages = document.querySelectorAll('.ppt-page');
+        const navItems = document.querySelectorAll('.nav-item');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleBtn');
+        
+        let currentPageIndex = 0;
+        const pageIds = ['cover', 'toc', 'chapter1', 'content', 'end'];
+        
+        // 自动更新所有页面的页码
+        function updatePageNumbers() {
+            pages.forEach((page, index) => {
+                const pageNumberElement = page.querySelector('.cover-page-number, .toc-page-number, .chapter-page-number, .content-page-number, .end-page-number');
+                if (pageNumberElement) {
+                    pageNumberElement.textContent = index + 1;
+                }
+            });
+        }
+        
+        function showPage(pageId, direction = 'next') {
+            const currentPage = document.querySelector('.ppt-page.active');
+            const targetPage = document.getElementById(pageId);
+            
+            if (currentPage) {
+                currentPage.classList.remove('active');
+                currentPage.classList.add(direction === 'next' ? 'prev' : 'next');
+            }
+            
+            navItems.forEach(item => item.classList.remove('active'));
+            document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
+            
+            targetPage.classList.add('active');
+            targetPage.classList.remove('prev', 'next');
+            
+            currentPageIndex = pageIds.indexOf(pageId);
+        }
+        
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const pageId = item.getAttribute('data-page');
+                const targetIndex = pageIds.indexOf(pageId);
+                const direction = targetIndex > currentPageIndex ? 'next' : 'prev';
+                showPage(pageId, direction);
+            });
+        });
+        
+        prevBtn.addEventListener('click', () => {
+            currentPageIndex = (currentPageIndex - 1 + pageIds.length) % pageIds.length;
+            showPage(pageIds[currentPageIndex], 'prev');
+        });
+        
+        nextBtn.addEventListener('click', () => {
+            currentPageIndex = (currentPageIndex + 1) % pageIds.length;
+            showPage(pageIds[currentPageIndex], 'next');
+        });
+        
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            toggleBtn.textContent = sidebar.classList.contains('collapsed') ? '‹' : '›';
+        });
+        
+        // 初始化页码
+        updatePageNumbers();
+        
+        // 键盘方向键导航
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                currentPageIndex = (currentPageIndex - 1 + pageIds.length) % pageIds.length;
+                showPage(pageIds[currentPageIndex], 'prev');
+            } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                currentPageIndex = (currentPageIndex + 1) % pageIds.length;
+                showPage(pageIds[currentPageIndex], 'next');
+            }
+        });
+    </script>
+</body>
+</html>
